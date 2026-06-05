@@ -4,54 +4,62 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'MLProject/dataset_preprocessing/**'
+      - 'MLProject/**' # 1. Trigger action jika ada perubahan di dalam folder MLProject
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
     
+    # 2. Sangat Penting: Memaksa semua perintah 'run' berjalan di dalam folder MLProject
+    defaults:
+      run:
+        working-directory: ./MLProject
+
     steps:
-    - uses: actions/checkout@v3
-    
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
-    
-    - name: Install MLflow
+        python-version: '3.12.7'
+        cache: 'pip'
+        cache-dependency-path: './MLProject/requirements.txt' # 3. Memberitahu lokasi file requirements
+        
+    - name: Install Dependencies
       run: |
-        pip install mlflow pandas numpy scikit-learn joblib
-    
-    - name: Train Model with MLflow
-      run: |
-        cd MLProject
-        mlflow run . -P data_path=dataset_preprocessing -P model_type=random_forest
-    
-    - name: Upload model artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: trained-model
-        path: MLProject/mlruns/
-    
-    - name: Save model to Google Drive (Skilled/Advanced)
+        # Menggunakan requirements.txt yang ada di folder kamu agar lebih rapi
+        pip install -r requirements.txt
+        
+    - name: Train Model & Log to DagsHub
       env:
-        GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+        DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_USER_TOKEN }}
       run: |
-        # Install gdown for Google Drive
-        pip install gdown
-        # Compress model
-        cd MLProject
-        tar -czf model_artifacts.tar.gz mlruns/ best_tuned_model.pkl 2>/dev/null || true
-        # Upload (you'll need to implement GDrive upload)
-        # Alternative: use GitHub Releases
-        echo "Model artifacts prepared for upload"
-    
+        # Menjalankan script (Bot sudah berada di dalam folder MLProject)
+        python modelling.py
+        
+    - name: Upload temporary artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: model-and-plots
+        # 4. Saat upload artifact, path harus ditulis lengkap dari root
+        path: |
+          MLProject/*.pkl
+          MLProject/*.png
+        retention-days: 14
+        
     - name: Create GitHub Release
       if: github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: model-v${{ github.run_number }}
         name: Model Training Run #${{ github.run_number }}
-        files: MLProject/*.pkl
+        # Path file juga harus ditulis lengkap dari root
+        files: |
+          MLProject/*.pkl
+          MLProject/*.png
         generate_release_notes: true
