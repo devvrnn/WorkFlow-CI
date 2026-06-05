@@ -1,0 +1,14 @@
+name: mlflow-training-project
+environment: conda.yaml
+entry_points:
+  main:
+    parameters:
+      data_path: {type: str, default: "dataset_preprocessing"}
+      model_type: {type: str, default: "random_forest"}
+    command: "python modelling.py --data_path {data_path} --model_type {model_type}"
+  
+  tune:
+    parameters:
+      data_path: {type: str, default: "dataset_preprocessing"}
+      n_trials: {type: int, default: 10}
+    command: "python modelling_tuning.py --data_path {data_path} --n_trials {n_trials}"
