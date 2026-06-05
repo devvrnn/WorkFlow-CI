@@ -1,0 +1,57 @@
+name: MLflow Model Training CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'MLProject/dataset_preprocessing/**'
+  workflow_dispatch:
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install MLflow
+      run: |
+        pip install mlflow pandas numpy scikit-learn joblib
+    
+    - name: Train Model with MLflow
+      run: |
+        cd MLProject
+        mlflow run . -P data_path=dataset_preprocessing -P model_type=random_forest
+    
+    - name: Upload model artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: trained-model
+        path: MLProject/mlruns/
+    
+    - name: Save model to Google Drive (Skilled/Advanced)
+      env:
+        GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+      run: |
+        # Install gdown for Google Drive
+        pip install gdown
+        # Compress model
+        cd MLProject
+        tar -czf model_artifacts.tar.gz mlruns/ best_tuned_model.pkl 2>/dev/null || true
+        # Upload (you'll need to implement GDrive upload)
+        # Alternative: use GitHub Releases
+        echo "Model artifacts prepared for upload"
+    
+    - name: Create GitHub Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: model-v${{ github.run_number }}
+        name: Model Training Run #${{ github.run_number }}
+        files: MLProject/*.pkl
+        generate_release_notes: true
