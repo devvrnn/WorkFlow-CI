@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  train-model:
+  train-and-upload:
     runs-on: ubuntu-latest
     
     # 2. Sangat Penting: Memaksa semua perintah 'run' berjalan di dalam folder MLProject
