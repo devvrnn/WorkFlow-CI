@@ -46,10 +46,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: model-and-plots
-        # 4. Saat upload artifact, path harus ditulis lengkap dari root
         path: |
-          MLProject/*.pkl
-          MLProject/*.png
+          MLProject/**/*.pkl
+          MLProject/**/*.png
         retention-days: 14
         
     - name: Create GitHub Release
@@ -58,8 +57,7 @@ jobs:
       with:
         tag_name: model-v${{ github.run_number }}
         name: Model Training Run #${{ github.run_number }}
-        # Path file juga harus ditulis lengkap dari root
         files: |
-          MLProject/*.pkl
-          MLProject/*.png
+          MLProject/**/*.pkl
+          MLProject/**/*.png
         generate_release_notes: true
