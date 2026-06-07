@@ -40,7 +40,7 @@ best_accuracy = 0
 
 # Train and log models
 for model_name, model in models.items():
-    with mlflow.start_run(run_name=model_name):
+    with mlflow.start_run(run_name=model_name, nested=True):
         # Enable autologging
         mlflow.sklearn.autolog()
         
