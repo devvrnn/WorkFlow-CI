@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'MLProject/**' # 1. Trigger action jika ada perubahan di dalam folder MLProject
+      - 'MLProject/**'
   workflow_dispatch:
 
 permissions:
@@ -14,7 +14,7 @@ jobs:
   train-and-upload:
     runs-on: ubuntu-latest
     
-    # 2. Sangat Penting: Memaksa semua perintah 'run' berjalan di dalam folder MLProject
+    # Memaksa semua perintah 'run' berjalan di dalam folder MLProject
     defaults:
       run:
         working-directory: ./MLProject
@@ -28,19 +28,19 @@ jobs:
       with:
         python-version: '3.12.7'
         cache: 'pip'
-        cache-dependency-path: './MLProject/requirements.txt' # 3. Memberitahu lokasi file requirements
+        cache-dependency-path: './MLProject/requirements.txt'
         
     - name: Install Dependencies
       run: |
-        # Menggunakan requirements.txt yang ada di folder kamu agar lebih rapi
         pip install -r requirements.txt
         
     - name: Train Model & Log to DagsHub
       env:
         DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_USER_TOKEN }}
       run: |
-        # Menjalankan script (Bot sudah berada di dalam folder MLProject)
-        python modelling.py
+        # PERBAIKAN UTAMA: 
+        # Menjalankan workflow menggunakan MLflow Project sesuai standar MLOps
+        mlflow run .
         
     - name: Upload temporary artifacts
       uses: actions/upload-artifact@v4
