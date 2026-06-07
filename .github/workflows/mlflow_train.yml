@@ -46,8 +46,7 @@ jobs:
       with:
         name: model-and-plots
         path: |
-          MLProject/**/*.pkl
-          MLProject/**/*.png
+          MLProject/models/*.pkl
         retention-days: 14
         
     - name: Create GitHub Release
@@ -57,6 +56,5 @@ jobs:
         tag_name: model-v${{ github.run_number }}
         name: Model Training Run #${{ github.run_number }}
         files: |
-          MLProject/**/*.pkl
-          MLProject/**/*.png
+          MLProject/models/*.pkl
         generate_release_notes: true
