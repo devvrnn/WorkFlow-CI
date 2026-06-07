@@ -63,8 +63,8 @@ for model_name, model in models.items():
         mlflow.log_metric("test_recall", recall)
         mlflow.log_metric("test_f1", f1)
         
-        # Log parameters
-        mlflow.log_param("model_type", model_name)
+        # PERBAIKAN DI SINI: Mengubah 'model_type' menjadi 'model_name' agar tidak bentrok
+        mlflow.log_param("model_name", model_name)
         
         # Save model
         model_path = f"models/{model_name.replace(' ', '_')}.pkl"
